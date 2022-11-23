@@ -9,7 +9,7 @@ class MomentumIndicatorBase (IndicatorBase):
     def __init__(self, candle_buffer: CandleBuffer) -> None:
         assert candle_buffer.get_capacity() >= 50 # mim candles required.
 
-        IndicatorBase.__init__(self)
+        IndicatorBase.__init__(self, self.momentum_indicator)
         self.candle_buffer = candle_buffer
         self.momentum_funct = getattr(abstract, self.momentum_indicator)
 
@@ -175,7 +175,7 @@ class PPO (MomentumIndicatorBase):
     momentum_indicator = "PPO"
 
     def update(self) -> float:
-        self.set(0, self.momentum_funct(self.candle_buffer.get_close_data(20))[-1])
+        self.set(0, self.momentum_funct(self.candle_buffer.get_close_data(40))[-1])
 
 class ROC (MomentumIndicatorBase):
     momentum_indicator = "ROC"
@@ -248,12 +248,6 @@ class STOCHRSI (MomentumIndicatorBase):
     def update(self) -> float:
         self.set(0, self.momentum_funct(self.candle_buffer.get_close_data(20))[-1])
 
-class TRIX (MomentumIndicatorBase):
-    momentum_indicator = "TRIX"
-
-    def update(self) -> float:
-        self.set(0, self.momentum_funct(self.candle_buffer.get_close_data(40))[-1])
-
 class ULTOSC (MomentumIndicatorBase):
     momentum_indicator = "ULTOSC"
 
@@ -274,7 +268,7 @@ class WILLR (MomentumIndicatorBase):
             self.candle_buffer.get_close_data(20)
         )[-1])
 
-MOMENTUM_INDICATOR_LIST = [ADX, ADXR, APO, AROON, AROONOSC, BOP, CCI, CMO, DX, MACD, MFI, MINUS_DI, MINUS_DM, MOM, PLUS_DI, PLUS_DM, PPO, ROC, ROCP, ROCR, RSI, STOCH, STOCHF, STOCHRSI, TRIX, ULTOSC, WILLR]
+MOMENTUM_INDICATOR_LIST = [ADX, ADXR, APO, AROON, AROONOSC, BOP, CCI, CMO, DX, MACD, MFI, MINUS_DI, MINUS_DM, MOM, PLUS_DI, PLUS_DM, PPO, ROC, ROCP, ROCR, RSI, STOCH, STOCHF, STOCHRSI, ULTOSC, WILLR]
 
 def get_momentum_indicator_suite(candle_buffer: CandleBuffer) -> list[MomentumIndicatorBase]:
     # Returns the full suite of MomentumIndicators

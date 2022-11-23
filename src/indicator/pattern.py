@@ -79,16 +79,16 @@ PATTERN_FUNCT_MAP = {
 class PatternIndicator (IndicatorBase):
     # Pattern Indicator for TaLib patterns.
     # Observation values range from [-2, 2].
-    def __init__(self, pattern: str, candle_buffer: CandleBuffer) -> None:
+    def __init__(self, pattern_indicator: str, candle_buffer: CandleBuffer) -> None:
         """ @param pattern (str): The pattern name from PATTERN_LIST.
             @param candles_buffer (CandlesBuffer): Reads OHLCV from this buffer to generate observations.
         """
         assert candle_buffer.get_capacity() > 30 # minimum candles required.
 
-        IndicatorBase.__init__(self)
+        IndicatorBase.__init__(self, pattern_indicator)
         self.candle_buffer = candle_buffer
-        self.pattern = pattern
-        self.pattern_funct = PATTERN_FUNCT_MAP.get(pattern)
+        self.pattern_indicator = pattern_indicator
+        self.pattern_funct = PATTERN_FUNCT_MAP.get(pattern_indicator)
         self.curr_obseration = 0
     
     def update(self) -> None:
@@ -100,7 +100,7 @@ class PatternIndicator (IndicatorBase):
         )[-1] / 100)
 
     def __reduce__(self) -> tuple:
-        return (self.__class__, (self.pattern, self.candle_buffer,))
+        return (self.__class__, (self.pattern_indicator, self.candle_buffer,))
 
 def get_pattern_indicator_suite(candle_buffer: CandleBuffer) -> list[PatternIndicator]:
     # Returns the full suite of PatternIndicators.

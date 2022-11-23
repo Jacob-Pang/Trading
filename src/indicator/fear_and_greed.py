@@ -32,7 +32,7 @@ class CryptoFearAndGreed (IndicatorBase):
         return timestamps, observations
 
     def __init__(self, apply_scaling: bool = True) -> None:
-        IndicatorBase.__init__(self)
+        IndicatorBase.__init__(self, "crypto_fear_and_greed")
         self.apply_scaling = apply_scaling
         self.next_update_time = time.time() - 1
 

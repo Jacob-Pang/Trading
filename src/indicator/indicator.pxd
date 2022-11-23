@@ -2,6 +2,7 @@
 cimport numpy as np
 
 cdef class IndicatorBase:
+    cdef str name
     cdef int num_features
     cdef double[:] current_observation
     

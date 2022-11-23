@@ -1,7 +1,8 @@
 import numpy as np
 
 cdef class IndicatorBase:
-    def __init__(self) -> None:
+    def __init__(self, name: str) -> None:
+        self.name = name
         self.current_observation = np.zeros(shape=(self.get_num_features(),), dtype=float)
 
     # Getters
@@ -23,10 +24,8 @@ cdef class IndicatorBase:
         # Performs update to store current observation
         return
 
-
     def __reduce__(self):
-        return (self.__class__, tuple())
-
+        return (self.__class__, (self.name,))
 
 cdef class FeaturesCompiler:
     def __init__(self, indicators: list[IndicatorBase]) -> None:
