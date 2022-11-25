@@ -3,89 +3,78 @@ from cython.operator import dereference, postincrement
 
 cdef class Balances:
     def __init__(self):
-        self.hashkey_to_tickers = dict()
+        self.keys_to_tickers = dict()
 
     # Getters
-    cdef double get_amount(self, long long ticker_hashkey):
-        if self.amounts.count(ticker_hashkey):
-            return self.amounts.at(ticker_hashkey)
-        
-        return 0 # Prevent automatic allocation
-    
-    cpdef double get(self, str ticker):
-        return self.get_amount(ticker.__hash__())
+    cpdef double get_size(self, str ticker):
+        cdef long long key = ticker.__hash__()
 
-    cpdef double get_net_value(self, dict ticker_values):
-        cdef double net_value = 0
-        cdef unordered_map[long long, double].iterator amounts_iterator = self.amounts.begin()
-        
-        while (amounts_iterator != self.amounts.end()):
-            ticker = self.hashkey_to_tickers.get(dereference(amounts_iterator).first)
+        if self.balances.count(ticker.__hash__()) > 0:
+            return self.balances[ticker.__hash__()].get_size()
 
-            if ticker in ticker_values:
-                net_value += ticker_values.get(ticker) * dereference(amounts_iterator).second
+        return 0
 
-            postincrement(amounts_iterator)
+    cpdef double get_value(self, str ticker, double price):
+        cdef long long key = ticker.__hash__()
 
-        return net_value
-    
+        if self.balances.count(ticker.__hash__()) > 0:
+            return self.balances[ticker.__hash__()].get_value(price)
+
+        return 0
+
     # Mutators
-    cdef bint add_amount(self, long long ticker_hashkey, double amount):
-        if self.amounts.count(ticker_hashkey):
-            self.amounts[ticker_hashkey] += amount
-            return False
+    cpdef void add_balance(self, str ticker, double size):
+        cdef long long key = ticker.__hash__()
+        cdef Balance* balance = new Balance(key, size)
+
+        if not self.balances.count(key):
+            self.keys_to_tickers[key] = ticker
         
-        self.amounts[ticker_hashkey] = amount
-        return True
+        balance.integrate_into_balances(self.balances)
 
-    cpdef void add(self, str ticker, double amount):
-        cdef long long hashkey = ticker.__hash__()
+    cpdef void add_cfd_balance(self, str ticker, str settlement_ticker, double size, double entry_price):
+        cdef long long key = ticker.__hash__()
+        cdef Balance* balance = new CFDBalance(key, settlement_ticker.__hash__(), size, entry_price)
 
-        if self.add_amount(hashkey, amount):
-            self.hashkey_to_tickers[hashkey] = ticker
+        if not self.balances.count(key):
+            self.keys_to_tickers[key] = ticker
+        
+        balance.integrate_into_balances(self.balances)
+        self.add_balance(settlement_ticker, 0) # Create balance for settlement currency.
 
     cpdef void assimilate(self, Balances other):
-        cdef unordered_map[long long, double].iterator amounts_iterator = other.amounts.begin()
-        cdef long long hashkey
+        cdef unordered_map[long long, Balance*].iterator balance_iterator = other.balances.begin()
+        cdef long long key
 
-        while (amounts_iterator != other.amounts.end()):
-            hashkey = dereference(amounts_iterator).first
+        while (balance_iterator != other.balances.end()):
+            key = dereference(balance_iterator).first
 
-            if self.add_amount(hashkey, dereference(amounts_iterator).second):
-                self.hashkey_to_tickers[hashkey] = other.hashkey_to_tickers[hashkey]
-
-            postincrement(amounts_iterator)
+            if not self.balances.count(key):
+                self.keys_to_tickers[key] = other.keys_to_tickers[key]
+            
+            dereference(balance_iterator).second.integrate_into_balances(self.balances)
+            postincrement(balance_iterator)
 
 
     def __repr__(self) -> str:
-        amounts_repr = dict()
-        cdef unordered_map[long long, double].iterator amounts_iterator = self.amounts.begin()
+        balances_repr = dict()
+        cdef unordered_map[long long, Balance*].iterator balance_iterator = self.balances.begin()
 
-        while (amounts_iterator != self.amounts.end()):
-            amounts_repr[self.hashkey_to_tickers[dereference(amounts_iterator).first]] = dereference(
-                    amounts_iterator).second
+        while (balance_iterator != self.balances.end()):
+            balances_repr[self.keys_to_tickers[dereference(balance_iterator).first]] = dereference(
+                    balance_iterator).second.get_size()
             
-            postincrement(amounts_iterator)
+            postincrement(balance_iterator)
 
-        return amounts_repr.__repr__()
+        return balances_repr.__repr__()
 
     def __reduce__(self) -> tuple:
-        amounts = dict()
-        cdef unordered_map[long long, double].iterator amounts_iterator = self.amounts.begin()
+        # Does not save balances
+        return (self.__class__, tuple(),)
 
-        while (amounts_iterator != self.amounts.end()):
-            amounts[dereference(amounts_iterator).first] = dereference(amounts_iterator).second
-            postincrement(amounts_iterator)
+    def __dealloc__(self):
+        cdef unordered_map[long long, Balance*].iterator balance_iterator = self.balances.begin()
 
-        attrs = {
-            "hashkey_to_tickers": self.hashkey_to_tickers,
-            "amounts": amounts
-        }
-
-        return (self.__class__, tuple(), attrs)
-
-    def __setstate__(self, attrs: dict) -> None:
-        self.hashkey_to_tickers = attrs.get("hashkey_to_tickers")
-        
-        for hashkey, amount in attrs.get("amounts").items():
-            self.amounts[hashkey] = amount
+        while (balance_iterator != self.balances.end()):
+            del dereference(balance_iterator).second
+            balance_iterator = self.balances.erase(balance_iterator)

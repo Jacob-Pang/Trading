@@ -83,5 +83,8 @@ class RPAMarketListenerBase (MarketListenerBase, RPAWebSurfer):
                 self.convert_to_float(ask_size.text)
             )
 
+    def update_tradebook(self) -> None:
+        return super().update_tradebook()
+
 if __name__ == "__main__":
     pass

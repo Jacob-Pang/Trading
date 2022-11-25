@@ -2,5 +2,10 @@ TRANSACT_FEE_RATE = 0.2 / 100 # 0.2 %
 STOP_LOSS_RATE = 1.0 / 100 # 1.0 %
 TRAILING_RATE = 0.5 / 100 # 0.5 %
 
+INIT_LEARNING_RATE = 0.01
+BATCH_SIZE = 64
+EPOCHS = 10
+CLASSIFICATION_THRESHOLD = 0.35
+
 if __name__ == "__main__":
     pass

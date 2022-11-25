@@ -51,6 +51,10 @@ class MarketBase:
         # Returns the query string for the URL
         return None
 
+    def get_funding_currency(self) -> str:
+        # Returns the ticker for the funding currency for the market.
+        raise NotImplementedError()
+
     def get_contra_position_size(self, size: float, transact_fee_rate: float) -> float:
         # Returns the contra_position size for an exisiting position size and transact_fee_rate.
         # Note negative sizes -> short position
@@ -74,6 +78,10 @@ class MarketBase:
                 If as_contra_position, perform exsiting_position.assimilate(contra_position)
                 to close the exisitng_position.
         """
+        raise NotImplementedError()
+
+    def get_tradeable_funds(self, balances: Balances) -> float:
+        # Returns the size of funds tradeable on the market
         raise NotImplementedError()
 
 if __name__ == "__main__":

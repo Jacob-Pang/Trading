@@ -11,6 +11,8 @@ build_dpath = os.path.join(os.getcwd(), "build")
 extensions = [
     Extension("src.balances.balances", [
         os.path.join("src", "balances", "balances.pyx"),
+        os.path.join("src", "balances", "Balance.cpp"),
+        os.path.join("src", "balances", "CFDBalance.cpp")
         ]
     ),
     Extension("src.orderbook.orderbook", [

@@ -7,9 +7,13 @@ class Portfolio (Balances):
         Balances.__init__(self)
         self._semaphore = threading.Semaphore(1)
 
-    def add(self, asset_ticker: str, amount: float) -> None:
+    def add_balance(self, ticker: str, size: float) -> None:
         with self._semaphore:
-            Balances.add(self, asset_ticker, amount)
+            Balances.add_balance(self, ticker, size)
+    
+    def add_cfd_balance(self, ticker: str, settlement_ticker: str, size: float, entry_price: float) -> None:
+        with self._semaphore:
+            Balances.add_cfd_balance(self, ticker, settlement_ticker, size, entry_price)
 
     def assimilate(self, other: Balances) -> None:
         with self._semaphore:

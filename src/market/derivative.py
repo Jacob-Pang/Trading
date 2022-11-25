@@ -7,17 +7,21 @@ class DerivativePosition (PositionBase):
 
     def get_open_size(self) -> float:
         # Returns the opened size of the position
-        return self.balances.get(self.market.ticker)
+        return self.balances.get_size(self.market.ticker)
 
 class Derivative (MarketBase):
-    def __init__(self, ticker: str, funding_currency: str) -> None:
+    def __init__(self, ticker: str, settlement_ticker: str) -> None:
         self.ticker = ticker
-        self.funding_currency = funding_currency
+        self.settlement_ticker = settlement_ticker
         
         MarketBase.__init__(self)
 
     def get_ticker(self) -> str:
         return self.ticker
+
+    def get_settlement_ticker(self) -> str:
+        # Returns the ticker for the funding currency for the market.
+        raise self.settlement_ticker
 
     def open_position(self, entry_price: float, size: float, transact_fee_rate: float,
         as_contra_position: bool = False) -> PositionBase:
@@ -26,10 +30,13 @@ class Derivative (MarketBase):
         if as_contra_position:
             size = self.get_contra_position_size(size, transact_fee_rate)
 
-        end_balances.add(self.ticker, size)
-        end_balances.add(self.funding_currency, -transact_fee_rate * entry_price * size)
+        end_balances.add_cfd_balance(self.ticker, self.settlement_ticker, size, entry_price)
+        end_balances.add_balance(self.settlement_ticker, -transact_fee_rate * entry_price * size)
 
         return DerivativePosition(self, entry_price, end_balances)
+
+    def get_tradeable_funds(self, balances: Balances) -> float:
+        return 0 # TODO
 
 if __name__ == "__main__":
     pass

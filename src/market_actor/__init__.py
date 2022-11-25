@@ -46,7 +46,7 @@ class MarketActorStub (MarketActorBase):
     def get_transact_fee_rate(self, market: MarketBase) -> float:
         return self.transact_fee_rate
 
-    def place_order(self, market: MarketBase, price: float, size: float) -> PositionBase:
+    def place_order(self, market: MarketBase, price: float, size: float) -> float:
         if self.echo_mode:
             if size > 0: # Long position
                 print(f"Bought {size:.2f} units of {market.get_ticker():<10} at {price:.2f}")

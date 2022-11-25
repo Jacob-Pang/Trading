@@ -3,11 +3,11 @@ from ..market_actor import MarketActorBase
 from ..market_listener import MarketListenerBase
 
 class AdvanceOrderBase:
-    def __init__(self, position: PositionBase, market_actor: MarketActorBase, market_listener: MarketListenerBase,
-        use_orderbook: bool = False) -> None:
+    def __init__(self, position: PositionBase, market_actor: MarketActorBase,
+        market_listener: MarketListenerBase, use_orderbook: bool = False) -> None:
         """
-        @param use_orderbook (bool, opt = False): Whether to use the orderbook prices as the benchmark for the
-                trigger (otherwise uses the current price).
+        @param use_orderbook (bool, opt = False): Whether to use the orderbook prices
+                as the benchmark for the trigger (otherwise uses the current price).
         """
         assert position.market == market_listener.market
 
