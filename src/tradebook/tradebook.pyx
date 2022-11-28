@@ -31,7 +31,10 @@ cdef class Tradebook:
         if not self.timestamps_buffer.empty():
             return self.timestamps_buffer[0]
 
-        return self.timestamps.get(-1)
+        if self.timestamps.get_size():
+            return self.timestamps.get(-1)
+
+        return 0
 
     cpdef TradebookIterator get_iterator(self, int from_address = -1, int address_timestamp = -1):
         if self.timestamps_buffer.size():

@@ -40,6 +40,11 @@ class MarketListenerBase:
         return self.tradebook
 
     # Update methods
+    def update(self, max_entries: int = None) -> None:
+        # Updates both orderbook and tradebook
+        self.update_orderbook(max_entries)
+        self.update_tradebook()
+
     def update_orderbook(self, max_entries: int = None) -> None:
         # Update the orderbook up to <max_entries>.
         raise NotImplementedError()

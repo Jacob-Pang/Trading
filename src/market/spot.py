@@ -10,6 +10,7 @@ class SpotPosition (PositionBase):
         return self.balances.get_size(self.market.base)
 
 class Spot (MarketBase):
+    # Base/Quote spot market
     def __init__(self, base: str, quote: str) -> None:
         self.base = base
         self.quote = quote
@@ -51,10 +52,6 @@ class Spot (MarketBase):
             end_balances.add_balance(self.quote, -(1. - transact_fee_rate) * (entry_price * size))
 
         return SpotPosition(self, entry_price, end_balances)
-
-    def get_tradeable_funds(self, balances: Balances) -> float:
-        # Returns the size of funds tradeable on the market
-        return 0 # TODO
 
 if __name__ == "__main__":
     pass

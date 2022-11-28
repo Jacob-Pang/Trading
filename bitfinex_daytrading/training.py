@@ -8,8 +8,6 @@ from sklearn.preprocessing import StandardScaler
 from tensorflow.python import keras
 from tensorflow.python.keras.layers import Input, Dense
 from tensorflow.python.keras.initializers import Constant
-from tensorflow.python.keras.optimizers import adam_v2
-
 from config import *
 
 ROOT_DPATH = os.path.dirname(os.path.dirname(__file__))
@@ -19,10 +17,10 @@ MODELS_DPATH = os.path.join(os.path.dirname(__file__), "models")
 sys.path.insert(0, ROOT_DPATH)
 
 METRICS = [
-    tf.keras.metrics.BinaryAccuracy(
+    keras.metrics.BinaryAccuracy(
         name='accuracy', threshold=CLASSIFICATION_THRESHOLD
     ),
-    tf.keras.metrics.Precision(
+    keras.metrics.Precision(
         name="precision", thresholds=CLASSIFICATION_THRESHOLD,
     )
 ]
@@ -60,9 +58,7 @@ class BatchGenerator:
 
         return x_batch, y_batch
 
-def make_classifier(num_features: int, outputs: np.ndarray, init_learning_rate: float = INIT_LEARNING_RATE,
-        metrics: list = METRICS):
-
+def make_classifier(num_features: int, outputs: np.ndarray, metrics: list = METRICS):
     positives = np.sum(outputs)
     negatives = outputs.shape[0] - positives
     bias_initializer = Constant(np.log([positives/ negatives]))
@@ -70,15 +66,17 @@ def make_classifier(num_features: int, outputs: np.ndarray, init_learning_rate: 
     # Layers
     input_layer = Input(shape=(num_features))
     dense_layer = Dense(units=256, activation="relu")(input_layer)
+    dense_layer = Dense(units=128, activation="relu")(input_layer)
     output_layer = Dense(units=1, activation="sigmoid", bias_initializer=bias_initializer) \
             (dense_layer) # Binary output
 
     model = keras.Model(input_layer, output_layer)
-    model.compile(optimizer=adam_v2.Adam(init_learning_rate), loss='binary_crossentropy', metrics=metrics)
+    model.compile(optimizer="adam", loss='binary_crossentropy', metrics=metrics)
 
     return model
 
 def main():
+    # TODO: add summary of performance
     # Load datasets
     with open(os.path.join(DATA_DPATH, "data_pipeline.pickle"), "rb") as file:
         data_pipeline = pickle.load(file)
@@ -135,8 +133,6 @@ def main():
 
     with open(os.path.join(MODELS_DPATH, "training", "short_scaler.pickle"), "wb") as file:
         pickle.dump(short_scaler, file)
-
-    # TODO: add summary of performance
-
+    
 if __name__ == "__main__":
     main()

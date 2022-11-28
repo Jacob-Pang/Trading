@@ -13,7 +13,10 @@ class RPAMarketListenerBase (MarketListenerBase, RPAWebSurfer):
     bid_orderbook_price_xpath = None
     ask_orderbook_size_xpath  = None
     ask_orderbook_price_xpath = None
-
+    trades_timestamp_xpath = None
+    trades_price_xpath = None
+    trades_size_xpath  = None
+    
     # RPAMarketListener derived methods
     def __init__(self, market: MarketBase, visual_automation: bool = False, chrome_browser: bool = True,
         headless_mode: bool = False, turbo_mode: bool = False, tradebook_capacity: int = 100) -> None:
@@ -31,6 +34,9 @@ class RPAMarketListenerBase (MarketListenerBase, RPAWebSurfer):
     def convert_to_float(self, num_text: str) -> float:
         # data cleaning method that can be overriden to optimize efficiency
         return float(num_text.replace(' ', '').replace(',', ''))
+
+    def convert_to_timestamp(self, timestamp_text: str) -> int:
+        raise NotImplementedError()
 
     # MarketListener derived methods
     def subscribe(self) -> None:
@@ -57,8 +63,16 @@ class RPAMarketListenerBase (MarketListenerBase, RPAWebSurfer):
         
         return ask_price, ask_size
     
-    def update_orderbook(self, max_entries: int) -> None:
+    def update(self, max_entries: int = None) -> None:
+        # Updates both orderbook and tradebook
         tree = etree.HTML(self.page_source())
+        self.update_orderbook(max_entries, tree=tree)
+        self.update_tradebook(tree=tree)
+
+    def update_orderbook(self, max_entries: int, tree = None) -> None:
+        if tree is None:
+            tree = etree.HTML(self.page_source())
+        
         self.orderbook.reset()
 
         # Parsing bid orderbook (assumes descending order)
@@ -83,8 +97,24 @@ class RPAMarketListenerBase (MarketListenerBase, RPAWebSurfer):
                 self.convert_to_float(ask_size.text)
             )
 
-    def update_tradebook(self) -> None:
-        return super().update_tradebook()
+    def update_tradebook(self, tree = None) -> None:
+        if tree is None:
+            tree = etree.HTML(self.page_source())
+        
+        trade_timestamps = tree.xpath(self.trades_timestamp_xpath)
+        trade_prices = tree.xpath(self.trades_price_xpath)
+        trade_sizes = tree.xpath(self.trades_size_xpath)
+        prev_timestamp = self.tradebook.get_timestamp()
+
+        # Assumes most recent trade first
+        for timestamp, price, size in zip(trade_timestamps, trade_prices, trade_sizes):
+            timestamp = self.convert_to_timestamp(timestamp.text)
+
+            if timestamp <= prev_timestamp:
+                break
+            
+            self.tradebook.append_trade(timestamp, self.convert_to_float(price.text),
+                    self.convert_to_float(size.text))
 
 if __name__ == "__main__":
     pass

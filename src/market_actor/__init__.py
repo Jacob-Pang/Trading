@@ -2,8 +2,9 @@ from ..market import MarketBase, PositionBase
 from ..balances import Portfolio
 
 class MarketActorBase:
-    def __init__(self, portfolio: Portfolio = Portfolio()):
+    def __init__(self, portfolio: Portfolio = Portfolio(), max_leverage: float = 1.):
         self.portfolio = portfolio
+        self.max_leverage = max_leverage
 
     def get_name(self) -> str:
         raise NotImplementedError()
@@ -33,8 +34,8 @@ class MarketActorBase:
 class MarketActorStub (MarketActorBase):
     # For training and testing purposes
     def __init__(self, transact_fee_rate: float, portfolio: Portfolio = Portfolio(),
-        name: str = "market_actor_stub", echo_mode: bool = True):
-        super().__init__(portfolio)
+        max_leverage: float = 1., name: str = "market_actor_stub", echo_mode: bool = True):
+        super().__init__(portfolio, max_leverage)
 
         self.transact_fee_rate = transact_fee_rate
         self.name = name
@@ -50,8 +51,10 @@ class MarketActorStub (MarketActorBase):
         if self.echo_mode:
             if size > 0: # Long position
                 print(f"Bought {size:.2f} units of {market.get_ticker():<10} at {price:.2f}")
+                print("Ending Portfolio: ", self.portfolio, '\n')
             else:
                 print(f"Sold   {abs(size):.2f} units of {market.get_ticker():<10} at {price:.2f}")
+                print("Ending Portfolio: ", self.portfolio, '\n')
 
         return price
 

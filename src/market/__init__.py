@@ -40,10 +40,11 @@ class PositionBase:
 
 class MarketBase:
     def __init__(self) -> None:
-        # Reduce overhead by storing the attributes
+        # Reduce overhead by caching the attributes
         self.ticker = self.get_ticker()
         self.query = self.get_query()
 
+    # Getters
     def get_ticker(self) -> str:
         raise NotImplementedError()
 
@@ -60,6 +61,7 @@ class MarketBase:
         # Note negative sizes -> short position
         return - size
 
+    # Actors
     def open_position(self, entry_price: float, size: float, transact_fee_rate: float,
         as_contra_position: bool = False) -> PositionBase:
         """ Opens a position.
@@ -78,10 +80,6 @@ class MarketBase:
                 If as_contra_position, perform exsiting_position.assimilate(contra_position)
                 to close the exisitng_position.
         """
-        raise NotImplementedError()
-
-    def get_tradeable_funds(self, balances: Balances) -> float:
-        # Returns the size of funds tradeable on the market
         raise NotImplementedError()
 
 if __name__ == "__main__":

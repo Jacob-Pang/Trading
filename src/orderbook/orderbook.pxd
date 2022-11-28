@@ -18,6 +18,8 @@ cdef class Orderbook:
     cpdef bint empty_ask_orderbook(self)
     cpdef tuple get_bid(self, int entry)
     cpdef tuple get_ask(self, int entry)
+    cpdef tuple get_market_bid(self, double funding_value)
+    cpdef tuple get_market_ask(self, double funding_value)
     cpdef double get_market_bid_price(self, double order_size)
     cpdef double get_market_ask_price(self, double order_size)
 

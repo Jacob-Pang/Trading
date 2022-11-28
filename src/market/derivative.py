@@ -35,8 +35,5 @@ class Derivative (MarketBase):
 
         return DerivativePosition(self, entry_price, end_balances)
 
-    def get_tradeable_funds(self, balances: Balances) -> float:
-        return 0 # TODO
-
 if __name__ == "__main__":
     pass
