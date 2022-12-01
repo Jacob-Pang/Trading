@@ -25,5 +25,5 @@ cdef class Orderbook:
 
     # Mutators
     cpdef void reset(self)
-    cpdef void append_bid(self, double bid_price, double bid_size)
-    cpdef void append_ask(self, double bid_price, double bid_size)
+    cpdef void append_bid(self, double bid_price, double bid_size) except +
+    cpdef void append_ask(self, double bid_price, double bid_size) except +

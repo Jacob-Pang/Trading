@@ -109,7 +109,7 @@ cdef class Orderbook:
         self.accum_ask_sizes.clear()
         self.timestamp = int(time.time())
     
-    cpdef void append_bid(self, double bid_price, double bid_size):
+    cpdef void append_bid(self, double bid_price, double bid_size) except +:
         cdef size_t bid_orderbook_size = self.bid_prices.size()
         
         if bid_orderbook_size == 0:
@@ -121,7 +121,7 @@ cdef class Orderbook:
         self.bid_prices.push_back(bid_price)
         self.bid_sizes.push_back(bid_size)
 
-    cpdef void append_ask(self, double ask_price, double ask_size):
+    cpdef void append_ask(self, double ask_price, double ask_size) except +:
         cdef size_t ask_orderbook_size = self.ask_prices.size()
 
         if ask_orderbook_size == 0:
