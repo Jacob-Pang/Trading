@@ -54,6 +54,8 @@ def demo():
     market_actor = MarketActorStub(TRANSACT_FEE_RATE, echo_mode=True)
     market_listener = BitfinexListener(market)
 
+    market_actor.portfolio.add_balance(market.get_funding_currency(), 100)
+
     # Loading Data Pipeline
     with open(os.path.join(DATA_DPATH, "data_pipeline.pickle"), "rb") as file:
         data_pipeline = pickle.load(file)

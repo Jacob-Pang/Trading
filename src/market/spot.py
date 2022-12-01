@@ -22,7 +22,7 @@ class Spot (MarketBase):
 
     def get_funding_currency(self) -> str:
         # Returns the ticker for the funding currency for the market.
-        raise self.quote
+        return self.quote
 
     def get_contra_position_size(self, size: float, transact_fee_rate: float) -> float:
         if size < 0: # Adjustment only for short positions

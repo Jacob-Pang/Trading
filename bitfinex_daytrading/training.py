@@ -65,8 +65,8 @@ def make_classifier(num_features: int, outputs: np.ndarray, metrics: list = METR
 
     # Layers
     input_layer = Input(shape=(num_features))
+    dense_layer = Dense(units=512, activation="relu")(input_layer)
     dense_layer = Dense(units=256, activation="relu")(input_layer)
-    dense_layer = Dense(units=128, activation="relu")(input_layer)
     output_layer = Dense(units=1, activation="sigmoid", bias_initializer=bias_initializer) \
             (dense_layer) # Binary output
 
@@ -89,20 +89,22 @@ def main():
 
     # Creating scalers and dataset generators
     long_scaler = StandardScaler()
-    long_scaler.fit(observations[:long_signals.shape[0]])
+    long_observations = observations[:long_signals.shape[0]]
+    long_scaler.fit(long_observations[-2000000:])
 
     long_generator = BatchGenerator(
-        x=long_scaler.transform(observations[:long_signals.shape[0]]),
-        y=long_signals,
+        x=long_scaler.transform(long_observations[-2000000:]),
+        y=long_signals[-2000000:],
         batch_size=BATCH_SIZE
     )
 
     short_scaler = StandardScaler()
-    short_scaler.fit(observations[:short_signals.shape[0]])
+    short_observations = observations[:short_signals.shape[0]]
+    short_scaler.fit(short_observations[-2000000:])
 
     short_generator = BatchGenerator(
-        x=short_scaler.transform(observations[:short_signals.shape[0]]),
-        y=short_signals,
+        x=short_scaler.transform(short_observations[-2000000:]),
+        y=short_signals[-2000000:],
         batch_size=BATCH_SIZE
     )
 
