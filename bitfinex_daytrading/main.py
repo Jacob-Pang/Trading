@@ -54,6 +54,7 @@ def demo():
     market_actor = MarketActorStub(TRANSACT_FEE_RATE, echo_mode=True)
     market_listener = BitfinexListener(market)
 
+    # Demo starting with 100 funds
     market_actor.portfolio.add_balance(market.get_funding_currency(), 100)
 
     # Loading Data Pipeline

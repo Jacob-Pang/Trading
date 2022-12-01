@@ -18,11 +18,12 @@ class MarketActorBase:
         # Negative sizes indicate opening of short positions.
         raise NotImplementedError()
 
-    def open_position(self, market: MarketBase, price: float, size: float,
-        as_contra_position: bool = False) -> PositionBase:
+    def open_position(self, market: MarketBase, price: float, size: float, as_contra_position:
+        bool = False) -> PositionBase:
 
         transact_fee_rate = self.get_transact_fee_rate(market)
-        order_size = market.get_contra_position_size(size, transact_fee_rate) if as_contra_position else size
+        order_size = market.get_contra_position_size(size, transact_fee_rate) \
+                if as_contra_position else size
         avg_filled_price = self.place_order(market, price, order_size)
         
         # Estimates and may possibly vary from realized positions
@@ -51,12 +52,19 @@ class MarketActorStub (MarketActorBase):
         if self.echo_mode:
             if size > 0: # Long position
                 print(f"Bought {size:.2f} units of {market.get_ticker():<10} at {price:.2f}")
-                print("Ending Portfolio: ", self.portfolio, '\n')
             else:
                 print(f"Sold   {abs(size):.2f} units of {market.get_ticker():<10} at {price:.2f}")
-                print("Ending Portfolio: ", self.portfolio, '\n')
 
         return price
+    
+    def open_position(self, market: MarketBase, price: float, size: float, as_contra_position:
+        bool = False) -> PositionBase:
+        position = MarketActorBase.open_position(self, market, price, size, as_contra_position)
+
+        if self.echo_mode:
+            print("Ending Portfolio:", self.portfolio)
+        
+        return position
 
 if __name__ == "__main__":
     pass
