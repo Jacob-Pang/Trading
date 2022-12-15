@@ -5,7 +5,7 @@ from lxml import etree
 from pyutils.websurfer import XPathIdentifier
 from pyutils.websurfer.rpa import RPAWebSurfer
 
-class RPAMarketListenerBase (MarketListenerBase):
+class RPAMarketListenerBase (MarketListenerBase, RPAWebSurfer):
     # MarketListener using RPA
     # xpaths to be overriden
     curr_price_xpath = None
@@ -40,7 +40,7 @@ class RPAMarketListenerBase (MarketListenerBase):
 
     # MarketListener derived methods
     def subscribe(self) -> None:
-        self.rpa.restart()
+        self.restart()
         self.rpa.url(self.get_url())
 
     def ready(self) -> bool:

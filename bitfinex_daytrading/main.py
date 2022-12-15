@@ -51,7 +51,7 @@ async def get_candles(bfx: Client, market: MarketBase, epochs: int = 100,
 def demo():
     market = BitfinexSpot("BTC", "USD")
     market_actor = MarketActorStub(TRANSACT_FEE_RATE, echo_mode=True)
-    market_listener = BitfinexListener(market)
+    market_listener = BitfinexListener(market, headless_mode=True)
 
     # Demo starting with 100 funds
     market_actor.portfolio.add_balance(market.get_funding_currency(), 100)
@@ -91,9 +91,18 @@ def demo():
             trading_cooldown=TRADING_COOLDOWN, trading_logic_update_intv=86400)
 
     trading_bot.subscribe_to_listener()
+    heartbeat_interval = 60 * 60
+    heartbeat_time = time.time() + heartbeat_interval
 
     while True: # TODO: Require some command interface
         trading_bot.do_events()
+        time.sleep(1)
+
+        if time.time() > heartbeat_time:
+            print(f"TradingBot Loop Heartbeat.")
+            heartbeat_time += heartbeat_interval
+            # estart and subscribe MarketListener
+            market_listener.subscribe()
 
     market_listener.close()
 
