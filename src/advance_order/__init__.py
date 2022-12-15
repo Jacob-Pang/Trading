@@ -1,6 +1,7 @@
 from ..market import MarketBase, PositionBase
 from ..market_actor import MarketActorBase
 from ..market_listener import MarketListenerBase
+from pyutils.events import wait_for
 
 class AdvanceOrderBase:
     def __init__(self, position: PositionBase, market_actor: MarketActorBase,
@@ -46,11 +47,9 @@ class AdvanceOrderBase:
             return
 
         # Close the position
-        open_size = self.position.get_open_size()
-        contra_position = self.market_actor.open_position(self.market, curr_price, open_size,
-                as_contra_position=True)
-        
-        self.position.assimilate(contra_position)
+        close_order = self.market_actor.close_position(self.position, curr_price)
+        wait_for(close_order.has_filled)
+        self.position.assimilate(close_order.filled_position)
 
 if __name__ == "__main__":
     pass

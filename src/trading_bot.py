@@ -5,6 +5,7 @@ from .market_actor import MarketActorBase
 from .market_listener import MarketListenerBase
 from .trading_logic import TradingLogicInterface
 from .advance_order.advance_order_logic import AdvanceOrderLogicInterface
+from pyutils.events import wait_for
 
 class TradingBot:
     def __init__(self, market_actor: MarketActorBase, market_listener: MarketListenerBase,
@@ -99,8 +100,9 @@ class TradingBot:
             if not trade_size:
                 return
     
-            position = self.market_actor.open_position(self.market, trade_price, trade_size)
-            self.advance_order = self.advance_order_logic.open_advance_order(position)
+            order = self.market_actor.place_open_order(self.market, trade_price, trade_size)
+            wait_for(order.has_filled, timeout=60)
+            self.advance_order = self.advance_order_logic.open_advance_order(order.filled_position)
 
 if __name__ == "__main__":
     pass

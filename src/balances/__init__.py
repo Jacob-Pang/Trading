@@ -1,11 +1,11 @@
-import threading
 from .balances import Balances
+from threading import Semaphore
 
 class Portfolio (Balances):
     # Thread-safe balances for access by multiple actors
     def __init__(self):
         Balances.__init__(self)
-        self._semaphore = threading.Semaphore(1)
+        self._semaphore = Semaphore(1)
 
     def add_balance(self, ticker: str, size: float) -> None:
         with self._semaphore:

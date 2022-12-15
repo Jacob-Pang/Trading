@@ -1,4 +1,5 @@
 from . import MarketBase, PositionBase
+from .cost_engine import CostEngine
 from ..balances import Balances
 
 class DerivativePosition (PositionBase):
@@ -23,17 +24,43 @@ class Derivative (MarketBase):
         # Returns the ticker for the funding currency for the market.
         raise self.settlement_ticker
 
-    def open_position(self, entry_price: float, size: float, transact_fee_rate: float,
-        as_contra_position: bool = False) -> PositionBase:
-        end_balances = Balances()
+    def make_cost_position(self, cost: float) -> PositionBase:
+        cost_balances = Balances()
+        cost_balances.add_balance(self.settlement_ticker, -cost)
 
-        if as_contra_position:
-            size = self.get_contra_position_size(size, transact_fee_rate)
+        return DerivativePosition(self, 0, cost_balances)
 
-        end_balances.add_cfd_balance(self.ticker, self.settlement_ticker, size, entry_price)
-        end_balances.add_balance(self.settlement_ticker, -transact_fee_rate * entry_price * size)
+    def open_position(self, price: float, size: float, transact_cost_engine: CostEngine) -> PositionBase:
+        """ Opens a market position. To close an existing position use @close_position.
 
-        return DerivativePosition(self, entry_price, end_balances)
+        @param price (float): The average price of the position to open.
+        @param size (float): The number of contracts or size of position to open, where
+                negative sizes indicate a short position.
+        @param transact_cost_engine (CostEngine): The transaction cost engine to use.
+
+        @returns opened_position (PositionBase): The position generated from the transaction.
+        """        
+        position_balances = Balances()
+        position_balances.add_cfd_balance(self.ticker, self.settlement_ticker, size, price)
+        position_balances.add_balance(self.settlement_ticker, -transact_cost_engine
+                .get_fill_cost(price * size))
+
+        return DerivativePosition(self, price, position_balances)
+
+    def close_position(self, price: float, size: float, transact_cost_engine: CostEngine) -> PositionBase:
+        """ Closes an existing market position of @param size.
+
+        @param price (float): The average price of the position to open.
+        @param size (float): The number of contracts or size of position to open, where
+                negative sizes indicate a short position.
+        @param transact_cost_engine (CostEngine): The transaction cost engine to use.
+
+        @returns closed_position (PositionBase): The position generated from the transaction.
+                Execute Portfolio.assimilate(closed_position) to offset and close the
+                exisiting position.
+        """
+        return self.open_position(price, self.get_contra_position_size(size, transact_cost_engine),
+                transact_cost_engine)
 
 if __name__ == "__main__":
     pass

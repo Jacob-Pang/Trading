@@ -33,6 +33,10 @@ extensions = [
         os.path.join("src", "indicator", "indicator.pyx"),
         ]
     ),
+    Extension("src.market.cost_engine.cost_engine", [
+        os.path.join("src", "market","cost_engine", "cost_engine.pyx"),
+        ]
+    ),
 ]
 
 setup(

@@ -1,3 +1,4 @@
+from .cost_engine import CostEngine
 from ..balances import Balances
 
 class PositionBase:
@@ -34,9 +35,9 @@ class PositionBase:
         # Returns the opened size of the position
         raise NotImplementedError()
 
-    def get_closing_size(self, transact_fee_rate: float) -> float:
+    def get_closing_size(self, trasact_cost_engine: CostEngine) -> float:
         # Returns the size to close this position accounting for transaction fees
-        return self.market.get_contra_position_size(self.get_open_size(), transact_fee_rate)
+        return self.market.get_contra_position_size(self.get_open_size(), trasact_cost_engine)
 
 class MarketBase:
     def __init__(self) -> None:
@@ -56,29 +57,47 @@ class MarketBase:
         # Returns the ticker for the funding currency for the market.
         raise NotImplementedError()
 
-    def get_contra_position_size(self, size: float, transact_fee_rate: float) -> float:
-        # Returns the contra_position size for an exisiting position size and transact_fee_rate.
-        # Note negative sizes -> short position
-        return - size
+    def get_contra_position_size(self, size: float, transact_cost_engine: CostEngine) -> float:
+        """ Returns the contra-position size to close @param size of an exisiting position.
+
+        @param size (float): The size of the existing position to close.
+        @param transact_cost_engine (CostEngine): The transaction cost engine to use.
+
+        @returns contra_size (float): The contra-position size adjusted for transaction costs.
+        """
+        return -size
+
+    # Position generators
+    def make_empty_position(self) -> PositionBase:
+        return self.open_position(0, 0, None)
+
+    def make_cost_position(self, cost: float) -> PositionBase:
+        raise NotImplementedError()
 
     # Actors
-    def open_position(self, entry_price: float, size: float, transact_fee_rate: float,
-        as_contra_position: bool = False) -> PositionBase:
-        """ Opens a position.
+    def open_position(self, price: float, size: float, transact_cost_engine: CostEngine) -> PositionBase:
+        """ Opens a market position. To close an existing position use @close_position.
 
-        @param entry_price (float): The average price at which to open the position.
+        @param price (float): The average price of the position to open.
         @param size (float): The number of contracts or size of position to open, where
                 negative sizes indicate a short position.
-        @param transact_fee_rate (float): The transaction fee as percentage of trade value.
-        @param as_contra_position (bool, opt = False): Whether to open a contra-position
-                to an existing_position (size = @param size) instead.
-                True: @param size is treated as the open_size for the existing_position, and
-                        the size to open is given by @method MarketBase.get_contra_position_size.
-                False: @param size is treated as the size to open.
+        @param transact_cost_engine (CostEngine): The transaction cost engine to use.
 
-        @returns open_position (PositionBase): The position generated from the transaction.
-                If as_contra_position, perform exsiting_position.assimilate(contra_position)
-                to close the exisitng_position.
+        @returns opened_position (PositionBase): The position generated from the transaction.
+        """
+        raise NotImplementedError()
+
+    def close_position(self, price: float, size: float, transact_cost_engine: CostEngine) -> PositionBase:
+        """ Closes an existing market position of @param size.
+
+        @param price (float): The average price of the position to open.
+        @param size (float): The number of contracts or size of position to open, where
+                negative sizes indicate a short position.
+        @param transact_cost_engine (CostEngine): The transaction cost engine to use.
+
+        @returns closed_position (PositionBase): The position generated from the transaction.
+                Execute Portfolio.assimilate(closed_position) to offset and close the
+                exisiting position.
         """
         raise NotImplementedError()
 

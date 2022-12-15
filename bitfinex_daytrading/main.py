@@ -18,8 +18,7 @@ sys.path.insert(0, ROOT_DPATH)
 
 from src.market import MarketBase
 from src.market.bitfinex import BitfinexSpot
-from src.market_actor import MarketActorStub
-from src.market_listener import MarketListenerStub
+from src.market_actor.stub import MarketActorStub
 from src.market_listener.bitfinex import BitfinexListener
 from src.advance_order.convertible_stop_loss import ConvertibleStopLossLogic
 from src.tradebook import Tradebook
