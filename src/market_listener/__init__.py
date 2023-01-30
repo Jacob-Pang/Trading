@@ -1,10 +1,8 @@
 from ..orderbook import Orderbook
 from ..tradebook import Tradebook
-from ..market import MarketBase
 
 class MarketListenerBase:
-    def __init__(self, market: MarketBase, tradebook_capacity: int = 100):
-        self.market = market
+    def __init__(self, tradebook_capacity: int = 100):
         self.name = self.get_name()
         self.orderbook = Orderbook()
         self.tradebook = Tradebook(tradebook_capacity)
@@ -27,12 +25,18 @@ class MarketListenerBase:
 
     def get_current_bid(self) -> tuple[float, float]:
         # Returns (bid_price, bid_size) for the highest bid
-        raise NotImplementedError()
+        return self.orderbook.get_current_bid()
 
     def get_current_ask(self) -> tuple[float, float]:
         # Returns (ask_price, ask_size) for the lowest ask
-        raise NotImplementedError()
-    
+        return self.orderbook.get_current_ask()
+
+    def get_market_bid_price(self, size: float) -> float:
+        return self.orderbook.get_market_bid_price(size)
+
+    def get_market_ask_price(self, size: float) -> float:
+        return self.orderbook.get_market_ask_price(size)
+
     def get_orderbook(self) -> Orderbook:
         return self.orderbook
 

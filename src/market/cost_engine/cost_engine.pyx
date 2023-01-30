@@ -1,9 +1,9 @@
 
 cdef class CostEngine:
-    def __init__(self, flat_cost: float = 0, min_cost: float = 0, percent_cost_rate: float = 0):
+    def __init__(self, flat_cost: float = 0, min_cost: float = 0, variable_cost_rate: float = 0):
         self.flat_cost = flat_cost
         self.min_cost = min_cost
-        self.percent_cost_rate = percent_cost_rate
+        self.variable_cost_rate = variable_cost_rate
 
         self.filled_size = 0
         self.filled_cost = 0
@@ -14,8 +14,8 @@ cdef class CostEngine:
     cpdef double get_min_cost(self):
         return self.min_cost
     
-    cpdef double get_percent_cost_rate(self):
-        return self.percent_cost_rate
+    cpdef double get_variable_cost_rate(self):
+        return self.variable_cost_rate
 
     cpdef double get_filled_size(self):
         return self.filled_size
@@ -24,7 +24,7 @@ cdef class CostEngine:
         return self.filled_cost
 
     cpdef double get_fill_cost(self, double fill_size):
-        cdef double running_cost = self.flat_cost + self.percent_cost_rate * abs(self.filled_size + fill_size)
+        cdef double running_cost = self.flat_cost + self.variable_cost_rate * abs(self.filled_size + fill_size)
 
         if running_cost < self.min_cost:
             return min(abs(fill_size), self.min_cost - self.filled_cost)

@@ -3,6 +3,7 @@ import time
 from lxml import etree
 from .rpa import RPAMarketListenerBase
 from pyutils.websurfer import XPathIdentifier
+from pyutils.websurfer.rpa.manager import RPAManager
 
 class BitfinexListener (RPAMarketListenerBase):
     # xpaths
@@ -17,11 +18,22 @@ class BitfinexListener (RPAMarketListenerBase):
 
     current_day_timestamp = 0
 
+    def __init__(self, market_query: str, tradebook_capacity: int = 100, visual_automation: bool = False,
+        chrome_browser: bool = True, headless_mode: bool = False, turbo_mode: bool = False,
+        rpa_manager: RPAManager = ..., rpa_instance_id: int = None, chrome_scan_period: int = 0,
+        sleeping_period: int = 0, engine_scan_period: int = 0, incognito_mode: bool = False) -> None:
+
+        RPAMarketListenerBase.__init__(self, tradebook_capacity, visual_automation, chrome_browser,
+                headless_mode, turbo_mode, rpa_manager, rpa_instance_id, chrome_scan_period,
+                sleeping_period,engine_scan_period, incognito_mode)
+
+        self.market_query = market_query
+
     def get_name(self) -> str:
-        return "Bitfinex"
+        return f"bitfinex_listener_on_{self.market_query}"
 
     def get_url(self) -> str:
-        return f"https://trading.bitfinex.com/t/{self.market.get_query()}?type=exchange"
+        return f"https://trading.bitfinex.com/t/{self.market_query}?type=exchange"
 
     def get_ready_element_xpath(self) -> XPathIdentifier:
         return XPathIdentifier(self.bid_orderbook_size_xpath)
@@ -71,8 +83,6 @@ class BitfinexListener (RPAMarketListenerBase):
             self.tradebook.append_trade(timestamp, self.convert_to_float(price_text),
                     self.convert_to_float(size_text))
             # **************************************************************************
-        
-        pass
 
 if __name__ == "__main__":
     pass

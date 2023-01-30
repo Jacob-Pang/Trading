@@ -1,11 +1,12 @@
 from . import MarketListenerBase
-from ..market import MarketBase
 
 from lxml import etree
 from pyutils.websurfer import XPathIdentifier
 from pyutils.websurfer.rpa import RPAWebSurfer
+from pyutils.websurfer.rpa.manager import RPAManager
+from pyutils.websurfer.rpa.manager import rpa_manager
 
-class RPAMarketListenerBase (MarketListenerBase, RPAWebSurfer):
+class RPAMarketListenerBase (RPAWebSurfer): # MarketListenerBase, 
     # MarketListener using RPA
     # xpaths to be overriden
     curr_price_xpath = None
@@ -18,12 +19,16 @@ class RPAMarketListenerBase (MarketListenerBase, RPAWebSurfer):
     trades_size_xpath  = None
     
     # RPAMarketListener derived methods
-    def __init__(self, market: MarketBase, visual_automation: bool = False, chrome_browser: bool = True,
-        headless_mode: bool = False, turbo_mode: bool = False, tradebook_capacity: int = 100) -> None:
-        # Listening with minimized delays
-        MarketListenerBase.__init__(self, market, tradebook_capacity)
+    def __init__(self, tradebook_capacity: int = 100, visual_automation: bool = False,
+        chrome_browser: bool = True, headless_mode: bool = False, turbo_mode: bool = False,
+        rpa_manager: RPAManager = rpa_manager, rpa_instance_id: int = None,
+        chrome_scan_period: int = 0, sleeping_period: int = 0, engine_scan_period: int = 0,
+        incognito_mode: bool = False):
+
+        MarketListenerBase.__init__(self, tradebook_capacity)
         RPAWebSurfer.__init__(self, visual_automation, chrome_browser, headless_mode, turbo_mode,
-                chrome_scan_period=0, looping_delay=False, sleep_period=0, engine_scan_period=0)
+                rpa_manager, rpa_instance_id, chrome_scan_period, sleeping_period,
+                engine_scan_period, incognito_mode)
 
     def get_url(self) -> str:
         raise NotImplementedError()
