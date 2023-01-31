@@ -47,9 +47,12 @@ class NewsListenerBase (ListenerBase):
                 return self.news_list[read_pointer:]
 
     # Mutators
+    def remove_oldest_news(self) -> None:
+        self.news_list.pop(0)
+
     def append_news(self, news: News) -> None:
         if len(self.news_list) == self.max_capacity:
-            self.news_list.pop(0)
+            self.remove_oldest_news()
             self.read_pointer = max(self.read_pointer - 1, 0)
 
         self.news_list.append(news)

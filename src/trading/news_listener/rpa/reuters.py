@@ -23,6 +23,7 @@ class ReutersNewsListener (RPANewsListenerBase):
 
         self.login_email = login_email
         self.login_password = login_password
+        self.headlines = set[str]()
 
     def get_url(self) -> str:
         return "https://www.reuters.com/account/sign-in/"
@@ -50,6 +51,14 @@ class ReutersNewsListener (RPANewsListenerBase):
 
         self.go_to_news_list()
 
+    def remove_oldest_news(self) -> None:
+        self.headlines.remove(self.news_list[0].headline)
+        RPANewsListenerBase.remove_oldest_news(self)
+
+    def append_news(self, news: News) -> None:
+        self.headlines.add(news.headline)
+        RPANewsListenerBase.append_news(self, news)
+
     def update(self) -> None:
         with self._update_semaphore:
             self.go_to_news_list() # Refresh
@@ -69,9 +78,7 @@ class ReutersNewsListener (RPANewsListenerBase):
                 ):
 
                 headline = news_headline_elem.text
-
-                if self.news_list and self.news_list[-1].headline == headline:
-                    break
+                if headline in self.headlines: continue
 
                 description = news_description_elem.text
                 article_link = "https://www.reuters.com" + news_list_item_elem.attrib["href"]
