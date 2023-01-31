@@ -7,7 +7,7 @@ from setuptools import setup, find_packages
 from Cython.Build import cythonize
 from os.path import basename, splitext
 
-build_dpath = os.path.join(os.getcwd(), "build")
+build_dpath = os.path.join("build")
 
 extensions = [
     Extension("trading.orderbook.orderbook", [
@@ -25,7 +25,7 @@ extensions = [
     Extension("trading.candle_buffer.candle_buffer", [
         os.path.join("src", "trading", "candle_buffer", "candle_buffer.pyx"),
         ], include_dirs=[
-            os.path.join(os.getcwd(), "src", "trading") # Relative imports used
+            os.path.join("src", "trading") # Relative imports used
         ]
     ),
     Extension("trading.market.cost_engine.cost_engine", [
