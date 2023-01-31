@@ -28,7 +28,10 @@ class ReutersNewsListener (RPANewsListenerBase):
         return "https://www.reuters.com/account/sign-in/"
 
     def get_ready_element_xpath(self) -> XPathIdentifier:
-        return XPathIdentifier("//a[@title='My Preferences']")
+        return XPathIdentifier("//main/section/ul/li/div/div/a")
+
+    def go_to_news_list(self) -> None:
+        self.rpa.url("https://www.reuters.com/myview/all")
 
     def subscribe(self) -> None:
         RPANewsListenerBase.subscribe(self)
@@ -45,11 +48,13 @@ class ReutersNewsListener (RPANewsListenerBase):
         assert wait_for(self.exists, timeout=10, element_identifier=XPathIdentifier
                 ("//a[@href='/world/']"))
 
-        self.rpa.url("https://www.reuters.com/myview/all")
+        self.go_to_news_list()
 
     def update(self) -> None:
         with self._update_semaphore:
-            # may need to refresh
+            self.go_to_news_list() # Refresh
+            assert wait_for(self.ready, timeout=10)
+
             news_list_item_ident = XPathIdentifier("//main/section/ul/li/div/div/a")
             news_headline_ident = news_list_item_ident.get_child("/h5")
             news_description_ident = news_list_item_ident.get_child("/p")
