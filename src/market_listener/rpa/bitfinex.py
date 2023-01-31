@@ -1,9 +1,10 @@
 import time
 
 from lxml import etree
-from .rpa import RPAMarketListenerBase
+from . import RPAMarketListenerBase
 from pyutils.websurfer import XPathIdentifier
 from pyutils.websurfer.rpa.manager import RPAManager
+from pyutils.websurfer.rpa.manager import rpa_manager
 
 class BitfinexListener (RPAMarketListenerBase):
     # xpaths
@@ -18,13 +19,14 @@ class BitfinexListener (RPAMarketListenerBase):
 
     current_day_timestamp = 0
 
-    def __init__(self, market_query: str, tradebook_capacity: int = 100, visual_automation: bool = False,
-        chrome_browser: bool = True, headless_mode: bool = False, turbo_mode: bool = False,
-        rpa_manager: RPAManager = ..., rpa_instance_id: int = None, chrome_scan_period: int = 0,
-        sleeping_period: int = 0, engine_scan_period: int = 0, incognito_mode: bool = False) -> None:
+    def __init__(self, market_query: str, tradebook_capacity: int = 100, max_orderbook_entries: int = None,
+        visual_automation: bool = False, chrome_browser: bool = True, headless_mode: bool = False,
+        turbo_mode: bool = False, rpa_manager: RPAManager = rpa_manager, rpa_instance_id: int = None,
+        chrome_scan_period: int = 0, sleeping_period: int = 0, engine_scan_period: int = 0,
+        incognito_mode: bool = False):
 
-        RPAMarketListenerBase.__init__(self, tradebook_capacity, visual_automation, chrome_browser,
-                headless_mode, turbo_mode, rpa_manager, rpa_instance_id, chrome_scan_period,
+        RPAMarketListenerBase.__init__(self, tradebook_capacity, max_orderbook_entries, visual_automation,
+                chrome_browser, headless_mode, turbo_mode, rpa_manager, rpa_instance_id, chrome_scan_period,
                 sleeping_period,engine_scan_period, incognito_mode)
 
         self.market_query = market_query
@@ -57,10 +59,10 @@ class BitfinexListener (RPAMarketListenerBase):
 
         return timestamp
 
-    def update_tradebook(self, tree = None) -> None:
+    def update_tradebook(self) -> None:
         # Override method due to unorthodox HTML
-        if tree is None:
-            tree = etree.HTML(self.page_source())
+        tree: etree._ElementTree = self._tree if self._tree else \
+                etree.HTML(self.page_source())
         
         trade_timestamps = tree.xpath(self.trades_timestamp_xpath)
         trade_prices = tree.xpath(self.trades_price_xpath)

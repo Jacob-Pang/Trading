@@ -1,18 +1,19 @@
 import datetime
 import pandas as pd
 
+from lxml import etree
 from pyutils.events import wait_for
 from pyutils.websurfer import WebsurferBase, XPathIdentifier
 from pyutils.websurfer.rpa import RPAWebSurfer
 
-from . import EarningsCalendarInterface, EarningsList
+from . import EarningsCalendarBase, EarningsList
 
-class NasdaqEarningsCalendar (EarningsCalendarInterface):
-    def get_market_open_datetime(self, day: datetime.date) -> datetime.datetime:
-        return datetime.datetime(year=day.year, month=day.month, day=day.day, hour=14, minute=30)
+class NasdaqEarningsCalendar (EarningsCalendarBase):
+    def get_market_open_time(self) -> datetime.time:
+        return datetime.time(hour=14, minute=30)
 
-    def get_market_close_datetime(self, day: datetime.date) -> datetime.datetime:
-        return datetime.datetime(year=day.year, month=day.month, day=day.day, hour=21)
+    def get_market_close_time(self) -> datetime.time:
+        return datetime.time(hour=21)
 
     def get_earnings_calendar(self, from_day: datetime.date = datetime.date.today(),
         to_day: datetime.date = None, days: int = 0, websurfer: WebsurferBase = None) \
@@ -93,10 +94,12 @@ class NasdaqEarningsCalendar (EarningsCalendarInterface):
                     if websurfer.exists(table_pages_ident) else 1
 
             for page_num in range(1, pages + 1): # Iterate over table pages
+                tree: etree._ElementTree = etree.HTML(websurfer.page_source())
+
                 for release_time_elem, stock_ticker_elem, eps_forecast_elem in zip(
-                    websurfer.find_elements(release_time_ident),
-                    websurfer.find_elements(stock_ticker_ident),
-                    websurfer.find_elements(eps_forecast_ident)
+                    tree.xpath(release_time_ident.as_xpath()),
+                    tree.xpath(stock_ticker_ident.as_xpath()),
+                    tree.xpath(eps_forecast_ident.as_xpath())
                     ):
 
                     release_datetime = self.get_market_open_datetime(curr_calendar_day) \

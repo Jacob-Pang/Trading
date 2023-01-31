@@ -1,18 +1,16 @@
 from . import MarketListenerBase
 
 class MarketListenerStub (MarketListenerBase):
-    curr_price = None
+    current_price: float = None
 
-    def get_name(self) -> str:
-        return "market_listener_stub"
-
+    # Setter
     def set_current_price(self, price: float) -> None:
-        self.curr_price = price
+        self.current_price = price
 
     def get_current_price(self) -> float:
-        return self.curr_price
+        return self.current_price
 
-    def update_orderbook(self, max_entries: int = None) -> None:
+    def update_orderbook(self) -> None:
         pass
 
     def update_tradebook(self) -> None:
