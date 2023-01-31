@@ -10,7 +10,10 @@ class ListenerBase:
 
     def update_loop_inactive(self) -> bool:
         # Returns whether there is an active update loop
-        return self._update_loop_thread is None
+        if self._update_loop_thread:
+            return not self._update_loop_thread.is_alive()
+
+        return True
 
     # Initializers
     def subscribe(self) -> None:
@@ -34,7 +37,6 @@ class ListenerBase:
     def close(self) -> None:
         # Closes the connection
         self.stop_update_loop()
-        assert wait_for(self.update_loop_inactive, timeout=30)
 
     # Events
     def run_update_loop(self, update_freq: float = .5, resubscription_rate: float = None,
@@ -59,8 +61,6 @@ class ListenerBase:
 
                 listener.update()
                 next_loop_timestamp = loop_timestamp + update_freq
-            
-            listener._update_loop_thread = None
 
         assert self.update_loop_inactive()
         self._active_update_loop = True
@@ -68,7 +68,10 @@ class ListenerBase:
                 resubscription_rate, subscription_timeout)).start()
 
     def stop_update_loop(self) -> None:
+        # Blocking stop
         self._active_update_loop = False
+        self._update_loop_thread.join()
+        self._update_loop_thread = None # Reset state
 
 if __name__ == "__main__":
     pass
