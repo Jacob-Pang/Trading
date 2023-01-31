@@ -32,8 +32,8 @@ class RPAListenerBase (RPAWebSurfer, ListenerBase):
     
     # Destructors
     def close(self) -> None:
-        RPAWebSurfer.close(self)
         ListenerBase.close(self)
+        RPAWebSurfer.close(self)
 
 if __name__ == "__main__":
     pass

@@ -64,6 +64,10 @@ class ReutersNewsListener (RPANewsListenerBase):
                 ):
 
                 headline = news_headline_elem.text
+
+                if self.news_list and self.news_list[-1].headline == headline:
+                    break
+
                 description = news_description_elem.text
                 article_link = "https://www.reuters.com" + news_list_item_elem.attrib["href"]
 
