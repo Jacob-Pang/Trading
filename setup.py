@@ -7,30 +7,30 @@ from setuptools import setup, find_packages
 from Cython.Build import cythonize
 from os.path import basename, splitext
 
-root_dpath = os.path.join(os.getcwd(), "src")
+os.chdir("src")
 build_dpath = os.path.join(os.getcwd(), "build")
 
 extensions = [
-    Extension("src.trading.orderbook.orderbook", [
-        os.path.join("src", "trading", "orderbook", "orderbook.pyx"),
+    Extension("trading.orderbook.orderbook", [
+        os.path.join("trading", "orderbook", "orderbook.pyx"),
         ]
     ),
-    Extension("src.trading.tradebook.tradebook", [
-        os.path.join("src", "trading", "tradebook", "tradebook.pyx"),
+    Extension("trading.tradebook.tradebook", [
+        os.path.join("trading", "tradebook", "tradebook.pyx"),
         ]
     ),
-    Extension("src.trading.candle_buffer.candle_buffer", [
-        os.path.join("src", "trading", "candle_buffer", "candle_buffer.pyx"),
+    Extension("trading.indicator.indicator", [
+        os.path.join("trading", "indicator", "indicator.pyx"),
+        ]
+    ),
+    Extension("trading.candle_buffer.candle_buffer", [
+        os.path.join("trading", "candle_buffer", "candle_buffer.pyx"),
         ], include_dirs=[
-            root_dpath # Relative imports used
+            os.path.join(os.getcwd(), "trading") # Relative imports used
         ]
     ),
-    Extension("src.trading.indicator.indicator", [
-        os.path.join("src", "trading", "indicator", "indicator.pyx"),
-        ]
-    ),
-    Extension("src.trading.market.cost_engine.cost_engine", [
-        os.path.join("src", "trading", "market", "cost_engine", "cost_engine.pyx"),
+    Extension("trading.market.cost_engine.cost_engine", [
+        os.path.join("trading", "market", "cost_engine", "cost_engine.pyx"),
         ]
     ),
 ]
