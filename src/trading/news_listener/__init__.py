@@ -11,8 +11,8 @@ class News:
         self.description = description
 
     def as_telegram_message(self) -> str:
-        return f"<b>{self.headline}</b>\n{self.timestamp.strftime(r'%b %d, %Y %I:%M %p')} GMT\n" \
-                + f"{self.article_link}\n\n{self.description}"
+        return f"<b>{self.headline}</b>\r{self.timestamp.strftime(r'%b %d, %Y %I:%M %p')} GMT\r" \
+                + f"{self.article_link}\r\r{self.description}"
 
 class NewsListenerBase (ListenerBase):
     def __init__(self, set_timestamp: datetime.datetime = None, max_capacity: int = 100) -> None:
