@@ -1,4 +1,5 @@
 # cython: language = 3
+# distutils: language = c++
 cimport numpy as np
 
 cdef class IndicatorBase:

@@ -1,4 +1,5 @@
 # cython: language_level = 3
+# distutils: language = c++
 cimport numpy as np
 
 from pyutils.array_queue.float_array_queue cimport ContiguousFloatArrayQueue
