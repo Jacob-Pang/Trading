@@ -43,7 +43,7 @@ class ListenerBase:
             resubscription_rate: float, subscription_timeout: int) -> None:
 
             next_loop_timestamp = 0
-            resubscription_timestamp = next_loop_timestamp + resubscription_rate \
+            resubscription_timestamp = time.time() + resubscription_rate \
                     if resubscription_rate else None
 
             while not listener.update_loop_inactive():
@@ -52,7 +52,8 @@ class ListenerBase:
                 
                 if resubscription_rate and loop_timestamp > resubscription_timestamp:
                     listener.subscribe()
-                    wait_for(listener.ready, timeout=subscription_timeout)
+                    assert wait_for(listener.ready, timeout=subscription_timeout)
+
                     resubscription_timestamp += resubscription_rate
 
                 listener.update()
