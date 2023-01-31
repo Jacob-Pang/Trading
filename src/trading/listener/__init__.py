@@ -53,14 +53,17 @@ class ListenerBase:
                 time.sleep(max(next_loop_timestamp - time.time(), 0))
                 loop_timestamp = time.time()
                 
-                if resubscription_rate and loop_timestamp > resubscription_timestamp:
+                if resubscription_timestamp and loop_timestamp > resubscription_timestamp:
                     listener.subscribe()
                     assert wait_for(listener.ready, timeout=subscription_timeout)
 
-                    resubscription_timestamp += resubscription_rate
-
-                listener.update()
-                next_loop_timestamp = loop_timestamp + update_freq
+                    resubscription_timestamp = resubscription_timestamp + resubscription_rate \
+                            if resubscription_rate else None
+                try:
+                    listener.update()
+                    next_loop_timestamp = loop_timestamp + update_freq
+                except: # Forced resubscription
+                    resubscription_timestamp = next_loop_timestamp
 
         assert self.update_loop_inactive()
         self._active_update_loop = True
