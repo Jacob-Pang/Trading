@@ -3,7 +3,7 @@ import pandas as pd
 
 from lxml import etree
 from pyutils.events import wait_for
-from pyutils.websurfer import WebsurferBase, XPathIdentifier
+from pyutils.websurfer import WebSurferBase, XPathIdentifier
 from pyutils.websurfer.rpa import RPAWebSurfer
 
 from . import EarningsCalendarBase, EarningsList
@@ -16,7 +16,7 @@ class NasdaqEarningsCalendar (EarningsCalendarBase):
         return datetime.time(hour=21)
 
     def get_earnings_calendar(self, from_day: datetime.date = datetime.date.today(),
-        to_day: datetime.date = None, days: int = 0, websurfer: WebsurferBase = None) \
+        to_day: datetime.date = None, days: int = 0, websurfer: WebSurferBase = None) \
         -> EarningsList:
         """
         """
@@ -86,7 +86,7 @@ class NasdaqEarningsCalendar (EarningsCalendarBase):
                     advance_to_day_ident=advance_to_day_ident)
 
         def parse_table(curr_calendar_day: datetime.date):
-            def advanced_table_page_pred(websurfer: WebsurferBase, curr_table_page: int,
+            def advanced_table_page_pred(websurfer: WebSurferBase, curr_table_page: int,
                 curr_table_page_ident: XPathIdentifier) -> bool:
                 return curr_table_page < int(websurfer.find_elements(curr_table_page_ident).text)
 

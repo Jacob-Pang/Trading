@@ -1,9 +1,9 @@
 from collections.abc import Iterable
 from pyutils.events import wait_for
-from pyutils.websurfer import WebsurferBase, XPathIdentifier
+from pyutils.websurfer import WebSurferBase, XPathIdentifier
 from pyutils.websurfer.rpa import RPAWebSurfer
 
-def get_nasdaq_analyst_rating(stock_tickers: (str | Iterable[str]), websurfer: WebsurferBase = None) \
+def get_nasdaq_analyst_rating(stock_tickers: (str | Iterable[str]), websurfer: WebSurferBase = None) \
     -> (float | list[float]):
 
     if not websurfer:
