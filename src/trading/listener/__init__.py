@@ -68,7 +68,9 @@ class ListenerBase:
         assert self.update_loop_inactive()
         self._active_update_loop = True
         self._update_loop_thread = Thread(target=_run_update_loop, args=(self, update_freq,
-                resubscription_rate, subscription_timeout)).start()
+                resubscription_rate, subscription_timeout))
+
+        self._update_loop_thread.start()
 
     def stop_update_loop(self) -> None:
         # Blocking stop
