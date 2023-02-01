@@ -11,16 +11,13 @@ from ..price_model_interface import PriceSimulationResults
 class GBMPriceModelBase (PriceModelBase):
     def __init__(self, asset_tickers: Iterable[str], asset_spot_prices: Iterable[float],
         asset_ret_drift: Iterable[float], asset_ret_covar_mat: np.ndarray, risk_free_rate: float,
-        time_step_size: float = 1, time_stamp: float = None, base_unit_of_time: int = 31104000,
-        log_ret_values: bool = False) -> None:
+        time_stamp: float = None, base_unit_of_time: int = 31104000, log_ret_values: bool = False) -> None:
         """
         @param asset_tickers (Iterable[str]): the tickers of the assets in the price model universe.
         @param asset_spot_prices (Iterable[float]): the current prices of the assets.
         @param asset_ret_drift (Iterable[float]): the expected returns (percent change in prices).
         @param asset_ret_covar_mat (np.ndarray): the covariance of the @param asset_ret_drift.
         @param risk_free_rate (str): the borrowing rate of the funding currency.
-        @param time_step_size (float, opt): the size per time step, in the units of
-                @param base_unit_of_time.
         @param time_stamp (float, opt): the current time_stamp of the model in seconds.
         @param base_unit_of_time (int, opt): the base time unit in seconds.
                 days:   86,400
@@ -33,7 +30,7 @@ class GBMPriceModelBase (PriceModelBase):
                     one unit of @param base_unit_of_time.
         """
         PriceModelBase.__init__(self, asset_tickers, asset_spot_prices, risk_free_rate,
-                time_step_size, time_stamp, base_unit_of_time)
+                time_stamp, base_unit_of_time)
         
         asset_ret_drift = np.array(asset_ret_drift, dtype=float)
 
@@ -46,7 +43,7 @@ class GBMPriceModelBase (PriceModelBase):
             self.asset_log_ret_covar_mat = np.log(asset_ret_covar_mat / (asset_ret_dt.T
                     @ asset_ret_dt) + 1)
 
-    # Return (denominated in base_unit_of_time) getters
+    # Return (denominated in base_unit_of_time: t = 1) getters
     def get_log_ret_drift(self, asset_ticker: str) -> float:
         return self.asset_log_ret_drift[self.ticker_to_indexes[asset_ticker]]
 
@@ -57,53 +54,50 @@ class GBMPriceModelBase (PriceModelBase):
     def get_log_ret_volatility(self, asset_ticker: str) -> float:
         return np.sqrt(self.get_log_ret_covar(asset_ticker, asset_ticker))
 
-    # St (denominated in time_step_size) getters
-    def get_log_st_mean(self, asset_ticker: str) -> float:
+    def get_log_st_mean(self, asset_ticker: str, t: float = 1) -> float:
         index = self.ticker_to_indexes[asset_ticker]
 
         return np.log(self.asset_spot_prices[index]) + (self.asset_log_ret_drift[index]
-                - self.asset_log_ret_covar_mat[index, index] / 2) \
-                * self.get_time_step_size()
+                - self.asset_log_ret_covar_mat[index, index] / 2) * t
 
-    def get_log_st_volatility(self, asset_ticker: str) -> float:
-        return np.sqrt(self.get_log_ret_covar(asset_ticker, asset_ticker)
-                * self.get_time_step_size()) 
+    def get_log_st_volatility(self, asset_ticker: str, t: float = 1) -> float:
+        return np.sqrt(self.get_log_ret_covar(asset_ticker, asset_ticker) * t) 
 
-    def get_log_st_covar(self, asset_ticker: str, other_ticker: str) -> float:
-        return self.get_time_step_size() * self.get_log_ret_covar(asset_ticker, other_ticker)
+    def get_log_st_covar(self, asset_ticker: str, other_ticker: str, t: float = 1) -> float:
+        return t * self.get_log_ret_covar(asset_ticker, other_ticker)
 
-    def get_log_st_corr(self, asset_ticker: str, other_ticker: str) -> float:
+    def get_log_st_corr(self, asset_ticker: str, other_ticker: str, t: float = 1) -> float:
         return self.get_log_ret_covar(asset_ticker, other_ticker) \
                 / self.get_log_ret_volatility(asset_ticker) \
                 / self.get_log_ret_volatility(other_ticker)
 
     # Desnity function getters
-    def get_asset_density_fn(self, asset_ticker: str) -> Function:
-        dist = LogNormal(Symbol(asset_ticker), mean=self.get_log_st_mean(asset_ticker),
-                std=self.get_log_st_volatility(asset_ticker))
+    def get_asset_density_fn(self, asset_ticker: str, t: float = 1) -> Function:
+        dist = LogNormal(Symbol(asset_ticker), mean=self.get_log_st_mean(asset_ticker, t),
+                std=self.get_log_st_volatility(asset_ticker, t))
         
         return density(dist)(Symbol(asset_ticker))
 
-    def get_joint_density_fn(self, asset_tickers: set[str]) -> Function:
+    def get_joint_density_fn(self, asset_tickers: set[str], t: float = 1) -> Function:
         asset_tickers = list(asset_tickers)
         m = len(asset_tickers)
 
         if m == 0:  return 1
-        if m == 1:  return self.get_asset_density_fn(*asset_tickers)
+        if m == 1:  return self.get_asset_density_fn(*asset_tickers, t)
 
         # Generate Ln(S_t) covariance matrix
         log_st_covar: Matrix = Matrix.zeros(m, m)
 
         for i in range(m):
-            log_st_covar[i, i] = self.get_log_st_covar(asset_tickers[i], asset_tickers[i])
+            log_st_covar[i, i] = self.get_log_st_covar(asset_tickers[i], asset_tickers[i], t)
 
             for j in range(i + 1, m):
-                log_st_covar[i, j] = self.get_log_st_covar(asset_tickers[i], asset_tickers[j])
+                log_st_covar[i, j] = self.get_log_st_covar(asset_tickers[i], asset_tickers[j], t)
                 log_st_covar[j, i] = log_st_covar[i, j]
 
         # Generate (Ln(S_t) - E[Ln(S_t)]) vector
         log_st_sub_mu: Matrix = Matrix([
-            (ln(Symbol(asset_ticker)) - self.get_log_st_mean(asset_ticker))
+            (ln(Symbol(asset_ticker)) - self.get_log_st_mean(asset_ticker, t))
             for asset_ticker in asset_tickers
         ])
 
@@ -111,13 +105,12 @@ class GBMPriceModelBase (PriceModelBase):
                     1 / Symbol(asset_ticker) for asset_ticker in asset_tickers
                 ) * exp(-0.5 * log_st_sub_mu.T * log_st_covar.inv() * log_st_sub_mu)
 
-    def simulate_prices(self, paths: int, time_steps: int) -> PriceSimulationResults:
-        log_st_drift_mean = (self.asset_log_ret_drift - np.diag(self.asset_log_ret_covar_mat) / 2) \
-                * self.get_time_step_size()
+    def simulate_prices(self, paths: int, time_steps: int, t: float = 1) -> PriceSimulationResults:
+        log_st_drift_mean = (self.asset_log_ret_drift - np.diag(self.asset_log_ret_covar_mat) / 2) * t
 
         # (time_steps, paths, m_assets)
-        results = np.random.multivariate_normal(log_st_drift_mean, self.asset_log_ret_covar_mat
-                * self.time_step_size, size=(time_steps, paths))
+        results = np.random.multivariate_normal(log_st_drift_mean, self.asset_log_ret_covar_mat * t,
+                size=(time_steps, paths))
         
         results = np.cumsum(results, axis=0)
         results += np.log(self.asset_spot_prices)
@@ -130,7 +123,7 @@ class GBMPriceModelBase (PriceModelBase):
         # (time_steps, paths, m_assets) -> (m_assets, time_steps + 1, paths)
         results = results.transpose((2, 0, 1))
 
-        return PriceSimulationResults(self.ticker_to_indexes, results)
+        return PriceSimulationResults(self.ticker_to_indexes, results, t)
 
 if __name__ == "__main__":
     pass

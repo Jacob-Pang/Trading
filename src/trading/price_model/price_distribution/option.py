@@ -9,7 +9,6 @@ class OptionPriceDistributionBase (DerivativePriceDistributionBase):
                 time_to_expiry, option_ticker)
 
         self.strike_price = strike_price
-        assert self.dt >= 0
 
     @property
     def K(self) -> float:

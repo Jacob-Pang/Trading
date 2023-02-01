@@ -21,12 +21,11 @@ class DerivativePriceDistributionBase (AssetPriceDistributionBase):
     def T(self) -> (float | None):
         return self.time_to_expiry
 
-    @property
-    def dt(self) -> float:
+    def get_dt(self, t: float) -> float:
         # Raises exception where time_to_expiry is not defined.
-        return self.T - self.t
+        return self.T - t
 
-    def get_fn(self) -> Function:
+    def get_fn(self, t: float = 1) -> Function:
         raise NotImplementedError()
 
     def get_simulated_values(self, results: PriceSimulationResults) -> np.ndarray:

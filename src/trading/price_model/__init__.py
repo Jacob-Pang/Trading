@@ -9,14 +9,11 @@ from .price_distribution.option import CallOptionPriceDistributionBase, PutOptio
 
 class PriceModelBase (PriceModelInterface):
     def __init__(self, asset_tickers: Iterable[str], asset_spot_prices: Iterable[float],
-        risk_free_rate: float, time_step_size: float = 1, time_stamp: float = None,
-        base_unit_of_time: int = 31104000) -> None:
+        risk_free_rate: float, time_stamp: float = None, base_unit_of_time: int = 31104000) -> None:
         """
         @param asset_tickers (Iterable[str]): the tickers of the assets in the price model universe.
         @param asset_spot_prices (Iterable[float]): the current prices of the assets.
         @param risk_free_rate (str): the borrowing rate of the funding currency.
-        @param time_step_size (float, opt): the size per time step, in the units of
-                @param base_unit_of_time.
         @param time_stamp (float, opt): the current time_stamp of the model in seconds.
         @param base_unit_of_time (int, opt): the base time unit in seconds.
                 days:   86,400
@@ -29,14 +26,10 @@ class PriceModelBase (PriceModelInterface):
 
         self.asset_spot_prices: np.ndarray = np.array(asset_spot_prices, dtype=float)
         self.risk_free_rate = risk_free_rate
-        self.time_step_size = time_step_size
         self.base_unit_of_time = base_unit_of_time
         self.time_stamp = time_stamp if time_stamp else time.time()
 
     # Getters
-    def get_time_step_size(self) -> float:
-        return self.time_step_size
-
     def get_spot_price(self, asset_ticker: str) -> float:
         return self.asset_spot_prices[self.ticker_to_indexes[asset_ticker]]
     
@@ -54,6 +47,24 @@ class PriceModelBase (PriceModelInterface):
             expiry_datetime = expiry_datetime.timestamp()
 
         return max(expiry_datetime - self.time_stamp, 0) / self.base_unit_of_time
+
+    def get_day_t(self) -> float:
+        """ @returns day_t (float): the time step size for day denominated in
+                base_unit_of_time.
+        """
+        return 86400 / self.base_unit_of_time
+    
+    def get_month_t(self) -> float:
+        """ @returns year_t (float): the time step size for 30-days month denominated in
+                base_unit_of_time.
+        """
+        return 2592000 / self.base_unit_of_time
+
+    def get_year_t(self) -> float:
+        """ @returns year_t (float): the time step size for 360-days year denominated in
+                base_unit_of_time.
+        """
+        return 31104000 / self.base_unit_of_time
 
     # PriceDistribution generators
     def get_asset_price_dist(self, asset_ticker: str) -> AssetPriceDistributionBase:
