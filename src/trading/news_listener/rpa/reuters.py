@@ -56,7 +56,7 @@ class ReutersNewsListener (RPANewsListenerBase):
         RPANewsListenerBase.remove_oldest_news(self)
 
     def append_news(self, news: News) -> None:
-        self.article_links.add(news.headline)
+        self.article_links.add(news.article_link)
         RPANewsListenerBase.append_news(self, news)
 
     def update(self) -> None:
