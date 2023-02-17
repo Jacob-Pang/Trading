@@ -3,7 +3,8 @@ import requests
 
 from lxml import etree
 from . import RPANewsListenerBase
-from .. import News
+from ..news import News
+from ..news_container import NewsContainerBase
 
 from pyutils.events import wait_for
 from pyutils.websurfer import XPathIdentifier
@@ -11,19 +12,18 @@ from pyutils.websurfer.rpa.manager import RPAManager
 from pyutils.websurfer.rpa.manager import rpa_manager
 
 class ReutersNewsListener (RPANewsListenerBase):
-    def __init__(self, login_email: str, login_password: str, set_timestamp: datetime.datetime = None,
-        max_capacity: int = 100, visual_automation: bool = False, chrome_browser: bool = True,
-        headless_mode: bool = False, turbo_mode: bool = False, rpa_manager: RPAManager = rpa_manager,
-        rpa_instance_id: int = None, chrome_scan_period: int = 0, sleeping_period: int = 0,
-        engine_scan_period: int = 0, incognito_mode: bool = False) -> None:
+    def __init__(self, login_email: str, login_password: str, visual_automation: bool = False,
+        chrome_browser: bool = True, headless_mode: bool = False, turbo_mode: bool = False,
+        rpa_manager: RPAManager = rpa_manager, rpa_instance_id: int = None, chrome_scan_period: int = 0,
+        sleeping_period: int = 0, engine_scan_period: int = 0, incognito_mode: bool = False,
+        news_container: NewsContainerBase = None) -> None:
 
-        RPANewsListenerBase.__init__(self, set_timestamp, max_capacity, visual_automation,
-                chrome_browser, headless_mode, turbo_mode, rpa_manager, rpa_instance_id,
-                chrome_scan_period, sleeping_period, engine_scan_period, incognito_mode)
+        RPANewsListenerBase.__init__(self, visual_automation, chrome_browser, headless_mode, turbo_mode,
+                rpa_manager, rpa_instance_id, chrome_scan_period, sleeping_period, engine_scan_period,
+                incognito_mode, news_container)
 
         self.login_email = login_email
         self.login_password = login_password
-        self.article_links = set[str]()
 
     def get_url(self) -> str:
         return "https://www.reuters.com/account/sign-in/"
@@ -51,14 +51,6 @@ class ReutersNewsListener (RPANewsListenerBase):
 
         self.go_to_news_list()
 
-    def remove_oldest_news(self) -> None:
-        self.article_links.remove(self.news_list[0].article_link)
-        RPANewsListenerBase.remove_oldest_news(self)
-
-    def append_news(self, news: News) -> None:
-        self.article_links.add(news.article_link)
-        RPANewsListenerBase.append_news(self, news)
-
     def update(self) -> None:
         with self._update_semaphore:
             self.go_to_news_list() # Refresh
@@ -81,7 +73,7 @@ class ReutersNewsListener (RPANewsListenerBase):
                 description = news_description_elem.text
                 article_link = "https://www.reuters.com" + news_list_item_elem.attrib["href"]
 
-                if article_link in self.article_links:
+                if article_link in self._news_container.link_to_news:
                     continue
 
                 # Currently Reuters support requests
@@ -94,13 +86,13 @@ class ReutersNewsListener (RPANewsListenerBase):
                 timestamp = datetime.datetime.strptime(f"{date} {time}", "%B %d, %Y %I:%M %p") \
                         + datetime.timedelta(hours=8)
 
-                if timestamp < self.get_last_timestamp():
+                if timestamp < self._news_container.get_latest_timestamp():
                     break
 
-                news_stack.append(News(timestamp, headline, article_link, description))
+                news_stack.append(News(headline, article_link, description, timestamp))
 
             for news in news_stack:
-                self.append_news(news)
+                self._news_container.append_news(news)
 
 if __name__ == "__main__":
     pass
