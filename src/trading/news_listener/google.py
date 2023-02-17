@@ -19,7 +19,7 @@ class GoogleNewsListener (NewsListenerBase):
             ]
 
             for news in sorted(news_list, key=lambda n: n.timestamp):
-                self._news_container.append_news(news)
+                self.append_news(news)
 
 if __name__ == "__main__":
     pass
