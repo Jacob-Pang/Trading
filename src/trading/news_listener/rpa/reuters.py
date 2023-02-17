@@ -92,7 +92,7 @@ class ReutersNewsListener (RPANewsListenerBase):
                 news_stack.append(News(headline, article_link, description, timestamp))
 
             for news in news_stack:
-                self._news_container.append_news(news)
+                self.append_news(news)
 
 if __name__ == "__main__":
     pass

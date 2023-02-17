@@ -25,5 +25,9 @@ class NewsListenerBase (ListenerBase):
         
         return news
 
+    # Mutators
+    def append_news(self, news: News) -> bool:
+        return self._news_container.append_news(news)
+
 if __name__ == "__main__":
     pass
